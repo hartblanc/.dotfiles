@@ -54,7 +54,9 @@ require('lint').linters_by_ft = linters
 
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufWritePost' }, {
   callback = function()
-    require('lint').try_lint('arc_lint')
+    if vim.fn.executable('arc') == 1 then
+      require('lint').try_lint('arc_lint')
+    end
   end,
   pattern = '*',
   desc = 'Run arc lint after reading or writing a buffer',
