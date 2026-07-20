@@ -1,10 +1,9 @@
-local ts_utils = require('nvim-treesitter.ts_utils')
 local treesitter = require('vim.treesitter')
 
 -- A small plugin for getting the jsonpath of the node under the cursor in JSON and YAML buffers
 
 local jsonpath = function(array_node_type)
-  local current_node = ts_utils.get_node_at_cursor()
+  local current_node = treesitter.get_node()
   local path = ''
   while current_node do
     if current_node:type():sub(-#'pair') == 'pair' then
@@ -13,10 +12,10 @@ local jsonpath = function(array_node_type)
       path = string.format('.%s%s', key, path)
     elseif current_node:parent() and current_node:parent():type():sub(-#array_node_type) == array_node_type then
       local count = 0
-      local previous_sibling = ts_utils.get_previous_node(current_node)
+      local previous_sibling = current_node:prev_named_sibling()
       while previous_sibling do
         count = count + 1
-        previous_sibling = ts_utils.get_previous_node(previous_sibling)
+        previous_sibling = previous_sibling:prev_named_sibling()
       end
       path = string.format('[%d]%s', count, path)
     end

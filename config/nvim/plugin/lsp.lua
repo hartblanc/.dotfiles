@@ -1,4 +1,4 @@
-vim.lsp.set_log_level(vim.log.levels.OFF)
+vim.lsp.log.set_level(vim.log.levels.WARN)
 
 --  This function gets run when an LSP attaches to a particular buffer.
 vim.api.nvim_create_autocmd('LspAttach', {

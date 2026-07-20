@@ -1,5 +1,74 @@
 local M = {}
 
+-- TODO: provide an option which enables ignoring references in test files for symbols from non-test files
+-- TODO: make opts less janky
+--
+local function go_test_ignore(symbol_txt)
+  local ignore = {
+    '^%[Method%] %(.+%)%.SetupSuite',
+    '^%[Method%] %(.+%)%.SetupTest',
+    '^%[Method%] %(.+%)%.TearDownSuite',
+    '^%[Method%] %(.+%)%.TearDownTest',
+    '^%[Method%] %(.+%)%.TearDownSubTest',
+    '^%[Method%] %(.+%)%.BeforeTest',
+    '^%[Method%] %(.+%)%.AfterTest',
+    '^%[Method%] %(.+%)%.Error',
+    '^%[Method%] %(.+%)%.String',
+    '^%[Method%] %(.+%)%.Matches',
+    '^%[Method%] %(.+%)%.Test',
+    '^%[Function%] Test',
+    '^%[Field%] Suite',
+  }
+
+  for _, i in ipairs(ignore) do
+    if string.find(symbol_txt, i) then
+      return false
+    end
+  end
+
+  return true
+end
+
+local function go_ignore(symbol_txt)
+  local ignore = {
+    '^%[Function%] main$',
+    '^%[Method%] %(.+%)%.Error',
+    '^%[Method%] %(.+%)%.String',
+    '^%[Method%] %(.+%)%.OnMessages',
+    '^%[Method%] %(.+%)%.SetupSuite',
+    '^%[Method%] %(.+%)%.SetupTest',
+    '^%[Method%] %(.+%)%.TearDownSuite',
+    '^%[Method%] %(.+%)%.TearDownTest',
+    '^%[Method%] %(.+%)%.BeforeTest',
+    '^%[Method%] %(.+%)%.AfterTest',
+    '^%[Method%] %(.+%)%.Matches',
+    '^%[Method%] %(.+%)%.Test',
+    '^%[Method%] %(.+%)%.MarshalJSON',
+    '^%[Method%] %(.+%)%.UnmarshalJSON',
+    '^%[Function%] Test',
+    '^%[Field%] Suite',
+  }
+
+  for _, i in ipairs(ignore) do
+    if string.find(symbol_txt, i) then
+      return false
+    end
+  end
+
+  return true
+end
+
+M.opts = {
+  go = {
+    symbol_filter = function(symbol)
+      if string.find(symbol.filename, '_test.go$') then
+        return go_test_ignore(symbol.text)
+      end
+      return go_ignore(symbol.text)
+    end,
+  },
+}
+
 local function find_symbols_with_zero_references(requester, uri, handler)
   requester('textDocument/documentSymbol', { textDocument = { uri = uri } }, function(err, symbols, _, _)
     if err then
@@ -14,12 +83,29 @@ local function find_symbols_with_zero_references(requester, uri, handler)
       return
     end
 
-    local results = {}
-    local items = vim.lsp.util.symbols_to_items(symbols, 0)
+    local bufnr = vim.uri_to_bufnr(uri)
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    local offset_encoding = 'utf-16'
+    for _, client in ipairs(clients) do
+      if client.offset_encoding then
+        offset_encoding = client.offset_encoding
+        break
+      end
+    end
+    local items = vim.lsp.util.symbols_to_items(symbols, bufnr, offset_encoding)
     for _, item in pairs(items) do
       item.filename = vim.uri_to_fname(uri)
     end
+    items = vim.tbl_filter(M.opts.go.symbol_filter, items)
+
     local remaining = #items
+
+    if remaining == 0 then
+      handler({})
+      return
+    end
+
+    local results = {}
     local function check_item_for_references(item_num)
       local item = items[item_num]
       requester('textDocument/references', {
@@ -65,7 +151,6 @@ M.process_paths = function(paths)
 
   local clients_by_name = {}
   local function process_file(pathnum)
-    print(pathnum .. '/' .. #paths)
     local path = paths[pathnum]
     local abspath = vim.fn.fnamemodify(path, ':p')
 
@@ -73,7 +158,6 @@ M.process_paths = function(paths)
     local client
     local ft, _ = vim.filetype.match({ filename = path })
     if not ft then
-      remaining = remaining - 1
       if remaining == 0 then
         vim.fn.setqflist(quickfix_items)
         vim.cmd.copen()
@@ -110,7 +194,12 @@ M.process_paths = function(paths)
           })
           if err or not client_id then
             vim.notify(err, vim.log.levels.WARN)
-            return nil
+            remaining = remaining - 1
+            if remaining == 0 then
+              vim.fn.setqflist(quickfix_items)
+              vim.cmd.copen()
+            end
+            return
           end
           client = vim.lsp.get_client_by_id(client_id)
           clients_by_name[name] = client

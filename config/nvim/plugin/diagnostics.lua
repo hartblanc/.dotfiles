@@ -13,13 +13,20 @@ vim.diagnostic.config({
   virtual_text = virtual_text_float_config,
   source = true,
   severity_sort = true,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '',
+      [vim.diagnostic.severity.WARN] = '',
+      [vim.diagnostic.severity.INFO] = '',
+    },
+  },
 })
 
-vim.fn.sign_define('DiagnosticSignError', { text = '', texthl = 'DiagnosticError' })
-vim.fn.sign_define('DiagnosticSignWarn', { text = '', texthl = 'DiagnosticWarn' })
-vim.fn.sign_define('DiagnosticSignInfo', { text = '', texthl = 'DiagnosticInfo' })
-
 -- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump({ count = -1, on_jump = vim.diagnostic.open_float })
+end, { desc = 'Go to previous [D]iagnostic message' })
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump({ count = 1, on_jump = vim.diagnostic.open_float })
+end, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', 'dK', vim.diagnostic.open_float)

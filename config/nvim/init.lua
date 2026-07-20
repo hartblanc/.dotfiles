@@ -4,6 +4,16 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Suppress annoying [LSP] warning/error messages regarding missing client IDs or buffer attachments,
+-- which can happen due to asynchronous scheduling race conditions during startup or client restarts/crashes.
+local original_notify = vim.notify
+vim.notify = function(msg, log_level, opts)
+  if msg and (msg:find('No client with id') or msg:find('not attached to buffer')) then
+    return
+  end
+  return original_notify(msg, log_level, opts)
+end
+
 -- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = os.getenv('NERD_FONT') ~= nil
 
@@ -20,10 +30,36 @@ end ---@diagnostic disable-next-line: undefined-field
 -- [[ Configure and install plugins ]]
 require('lazy').setup({
   {
-    'marcuscaisey/please.nvim',
-    dependencies = {
-      'mfussenegger/nvim-dap',
+    'johmsalas/text-case.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim' },
+    config = function()
+      require('textcase').setup({})
+      require('telescope').load_extension('textcase')
+    end,
+    keys = {
+      'ga', -- Default invocation prefix
+      { 'ga.', '<cmd>TextCaseOpenTelescope<CR>', mode = { 'n', 'x' }, desc = 'Telescope' },
     },
+    cmd = {
+      -- NOTE: The Subs command name can be customized via the option "substitude_command_name"
+      'Subs',
+      'TextCaseOpenTelescope',
+      'TextCaseOpenTelescopeQuickChange',
+      'TextCaseOpenTelescopeLSPChange',
+      'TextCaseStartReplacingCommand',
+    },
+    -- If you want to use the interactive feature of the `Subs` command right away, text-case.nvim
+    -- has to be loaded on startup. Otherwise, the interactive feature of the `Subs` will only be
+    -- available after the first executing of it or after a keymap of text-case.nvim has been used.
+    lazy = false,
+  },
+  {
+    'icholy/lsplinks.nvim',
+    config = function()
+      local lsplinks = require('lsplinks')
+      lsplinks.setup()
+      vim.keymap.set('n', 'gx', lsplinks.gx)
+    end,
   },
   {
     'ray-x/lsp_signature.nvim', -- Show function signature when you type
@@ -31,13 +67,13 @@ require('lazy').setup({
       hint_enable = false,
     },
   },
-  {
-    'rcarriga/nvim-notify', -- fancy notification popups
-    config = function()
-      -- registers nvim-notify as the default notification provider
-      vim.notify = require('notify')
-    end,
-  },
+  -- {
+  --   'rcarriga/nvim-notify', -- fancy notification popups
+  --   config = function()
+  --     -- registers nvim-notify as the default notification provider
+  --     vim.notify = require('notify')
+  --   end,
+  -- },
   {
     'yorickpeterse/nvim-pqf', -- pretty quickfix formatting
     opts = {},
@@ -183,9 +219,15 @@ require('lazy').setup({
 
   {
     'nvim-treesitter/nvim-treesitter', -- Highlight, edit, and navigate code
+    tag = 'v0.25.10',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = {
+      auto_install = true,
+    },
+    config = function(_, opts)
+      require('nvim-treesitter.config').setup(opts)
+
+      local ensure_installed = {
         'bash',
         'c',
         'comment',
@@ -220,28 +262,44 @@ require('lazy').setup({
         'vim',
         'vimdoc',
         'yaml',
-      },
+      }
 
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = { enable = true },
-      indent = { enable = true },
-      textobjects = {
-        select = {
-          enable = true,
-          keymaps = {
-            ['iv'] = '@literal_value.inner',
-            ['av'] = '@literal_value.outer',
-          },
-        },
-      },
-    },
-    config = function(_, opts)
-      require('nvim-treesitter.configs').setup(opts)
+      pcall(function()
+        local installed = require('nvim-treesitter.config').get_installed()
+        local to_install = {}
+        for _, parser in ipairs(ensure_installed) do
+          if not vim.tbl_contains(installed, parser) then
+            table.insert(to_install, parser)
+          end
+        end
+        if #to_install > 0 then
+          require('nvim-treesitter').install(to_install)
+        end
+      end)
+
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function()
+          pcall(vim.treesitter.start)
+          vim.bo.indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+        end,
+      })
     end,
     dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects',
-      'nvim-treesitter/playground',
+      {
+        'nvim-treesitter/nvim-treesitter-textobjects',
+        branch = 'main',
+        config = function()
+          require('nvim-treesitter-textobjects').setup({
+            select = {
+              enable = true,
+              keymaps = {
+                ['iv'] = '@literal_value.inner',
+                ['av'] = '@literal_value.outer',
+              },
+            },
+          })
+        end,
+      },
       { 'nvim-treesitter/nvim-treesitter-context', opts = {} },
     },
   },
@@ -262,6 +320,12 @@ require('lazy').setup({
       { '<c-k>', '<cmd><C-U>TmuxNavigateUp<cr>' },
       { '<c-l>', '<cmd><C-U>TmuxNavigateRight<cr>' },
       { '<c-\\>', '<cmd><C-U>TmuxNavigatePrevious<cr>' },
+    },
+  },
+  {
+    'marcuscaisey/please.nvim',
+    dependencies = {
+      'mfussenegger/nvim-dap',
     },
   },
 }, {

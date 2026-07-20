@@ -23,13 +23,17 @@ end
 local function parse_gci_args()
   local args = { 'write', '--skip-generated', '$FILENAME' }
 
-  local config_file = vim.fs.find('.golangci.yml', { upward = true })[1]
+  local config_file = vim.fs.find('.golang_formatter.yml', { upward = true })[1]
   if (not config_file) or vim.fn.executable('yq') ~= 1 then
     return args
   end
 
-  local out = capture_shell("yq '.linters-settings.gci' -o json " .. config_file)
+  local out = capture_shell("yq '.formatters.settings.gci' -o json " .. config_file)
   local gci_config = vim.json.decode(out)
+
+  if type(gci_config) ~= 'table' or not gci_config.sections then
+    return args
+  end
 
   for _, section in ipairs(gci_config.sections) do
     table.insert(args, '-s')

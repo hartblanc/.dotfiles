@@ -32,18 +32,18 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Remove highlights 
 
 vim.keymap.set('n', '<leader>m', '<cmd>messages<cr>', { desc = 'Show all messages' })
 
-vim.keymap.set(
-  'n',
-  '/',
-  '/\\V',
-  { desc = 'Use verynomagic mode in all searches. i.e. all regexp special characters must be escaped.' }
-)
-vim.keymap.set(
-  'c',
-  's/',
-  's/\\V',
-  { desc = 'Use verynomagic mode in all substitutions. all regexp special characters must be escaped.' }
-)
+-- vim.keymap.set(
+--   'n',
+--   '/',
+--   '/\\V',
+--   { desc = 'Use verynomagic mode in all searches. i.e. all regexp special characters must be escaped.' }
+-- )
+-- vim.keymap.set(
+--   'c',
+--   's/',
+--   's/\\V',
+--   { desc = 'Use verynomagic mode in all substitutions. all regexp special characters must be escaped.' }
+-- )
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -102,7 +102,14 @@ vim.keymap.set('n', '<leader>Y', function()
   vim.notify('Yanked absolute path of current buffer: ' .. filepath, vim.log.levels.INFO)
 end, { desc = 'Yank the absolute path of the current buffer' })
 
-vim.keymap.set('n', '<leader>ys', function()
+vim.keymap.set(
+  'n',
+  '<leader>ys',
+  function() end,
+  { desc = 'Yank the sourcegraph URL to the current position in the buffer' }
+)
+
+local function yank_sourcegraph(git_ref)
   local base_url = vim.env.SOURCEGRAPH_BASE_URL
   if not base_url then
     vim.notify('Unable to yank sourcegraph URL: SOURCEGRAPH_BASE_URL env var not set', vim.log.levels.ERROR)
@@ -112,6 +119,17 @@ vim.keymap.set('n', '<leader>ys', function()
   local filepath = vim.api.nvim_buf_get_name(0)
   local relative_filepath = filepath:gsub('^' .. git_root(), '')
 
+  local git_ref_segment = git_ref and '@' .. git_ref or ''
+
+  local line = unpack(vim.api.nvim_win_get_cursor(0))
+  local url = string.format('%s%s/-/blob/%s?L%d', base_url, git_ref_segment, relative_filepath, line)
+  vim.fn.setreg('"', url)
+  vim.fn.setreg('*', url)
+  vim.notify('Yanked sourcegraph URL: ' .. url, vim.log.levels.INFO)
+end
+
+vim.keymap.set('n', '<leader>ys', function()
+  -- include upstream branch or git tag in URL if present
   local git_ref
   local upstream_branch = vim.trim(vim.system({ 'git', 'rev-parse', '--abbrev-ref', '@{upstream}' }):wait().stdout)
   if upstream_branch ~= '' then
@@ -126,11 +144,10 @@ vim.keymap.set('n', '<leader>ys', function()
     end
   end
 
-  local git_ref_segment = git_ref and '@' .. git_ref or ''
-
-  local line = unpack(vim.api.nvim_win_get_cursor(0))
-  local url = string.format('%s%s/-/blob/%s?L%d', base_url, git_ref_segment, relative_filepath, line)
-  vim.fn.setreg('"', url)
-  vim.fn.setreg('*', url)
-  vim.notify('Yanked sourcegraph URL: ' .. url, vim.log.levels.INFO)
+  yank_sourcegraph(git_ref)
 end, { desc = 'Yank the sourcegraph URL to the current position in the buffer' })
+
+vim.keymap.set('n', '<leader>ysp', function()
+  local git_ref = vim.trim(vim.system({ 'git', 'rev-parse', 'HEAD' }):wait().stdout)
+  yank_sourcegraph(git_ref)
+end, { desc = 'Yank the permalink sourcegraph URL to the current position in the buffer' })

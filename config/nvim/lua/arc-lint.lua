@@ -42,14 +42,16 @@ M.parse_arc_output = function(output)
     for filepath, diag_list in pairs(decoded or {}) do
       for _, item in ipairs(diag_list or {}) do
         if item.severity ~= 'autofix' then
-          local lnum = truthy(item.line) and item.line or 0
-          local char = truthy(item.char) and item.char or 0
+          local line = truthy(item.line) and item.line or 1
+          local char = truthy(item.char) and item.char or 1
+          local lnum = line - 1
+          local col = char - 1
           table.insert(diagnostics, {
             filepath = filepath,
             lnum = lnum,
-            col = char - 1,
-            end_lnum = lnum - 1,
-            end_col = char - 1,
+            col = col,
+            end_lnum = lnum,
+            end_col = col,
             code = item.code,
             source = 'arc-lint',
             user_data = {
@@ -86,8 +88,8 @@ M.arc_lint = function(paths)
       for _, item in ipairs(items) do
         table.insert(quickfix_items, {
           filename = item.filepath,
-          lnum = item.lnum,
-          col = item.col,
+          lnum = item.lnum + 1,
+          col = item.col + 1,
           text = item.message,
         })
       end
