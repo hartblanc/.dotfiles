@@ -99,9 +99,9 @@ alias d="cd ~/.dotfiles"
 alias oops="git add --update && git commit -v --no-edit --amend"
 
 # replace ls with a more modern replacement
-alias ls="exa --classify "
-alias la="exa --classify --all"
-alias ll="exa --header --classify --all --long"
+alias ls="eza --classify=auto"
+alias la="eza --classify=auto --all"
+alias ll="eza --header --classify=auto --all --long"
 
 # use neovim instead of vim
 alias vi=nvim
