@@ -33,7 +33,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 curl https://sh.rustup.rs -sSf | sh
 
 # install rust binaries to $HOME/.cargo/bin
-cargo install exa fd-find bat ripgrep sd stylua
+cargo install eza fd-find bat ripgrep sd stylua
 
 # install fzf
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf

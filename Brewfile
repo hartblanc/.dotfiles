@@ -25,7 +25,7 @@ brew "erlang"
 # Functional metaprogramming aware language built on Erlang VM
 brew "elixir"
 # Modern replacement for 'ls'
-brew "exa"
+brew "eza"
 # Simple, fast and user-friendly alternative to find
 brew "fd"
 # Command-line fuzzy finder written in Go
