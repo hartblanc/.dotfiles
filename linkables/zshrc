@@ -4,21 +4,18 @@ else
     source ~/.zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 fi
 
-# The clang python binding searches for header files in /usr/include by default.
-# MacOS System Integrity Protection prevents the cration of /usr/include (even by root).
-# Updating CPATH tells the clang python binding where to find the C headers.
-# You need to have the command line tools installed for this to work.
-# They will not be pressent after an OS upgrade. Use xcode-select --install to install them.
-if whence xcrun >/dev/null; then
-    export CPATH=`xcrun --show-sdk-path`/usr/include
-fi
+# drop repeated PATH entries, so adding a directory that's already there does nothing
+typeset -U path PATH
+
+# user-installed binaries (claude, plz)
+path=($HOME/.local/bin $path)
 
 # add the user base's binary directory to the path to allow binaries to be installed
 # using `pip3 --user` (reduces risk of breaking system-wide packages)
-export PATH=$PATH:$(python3 -m site --user-base)/bin
+path+=($(python3 -m site --user-base)/bin)
 
 # add cargo binaries to the path to access rusty CLIs (rg, fd, fzf etc.)
-export PATH=$PATH:$HOME/.cargo/bin
+path+=($HOME/.cargo/bin)
 
 # source extensions
 if whence brew >/dev/null; then
