@@ -55,5 +55,11 @@ sudo apt-get install ninja-build gettext cmake curl build-essential \
 # install starship prompt
 curl -sS https://starship.rs/install.sh | sh
 
+# install hunk, the git pager
+curl -fsSL https://hunk.dev/install.sh | sh
+# link it into ~/.local/bin, which zprofile puts on the path
+mkdir -p ~/.local/bin
+ln -sf ~/.hunk/bin/hunk ~/.local/bin/hunk
+
 ~/.dotfiles/link.sh
 chsh -s "$(which zsh)"
