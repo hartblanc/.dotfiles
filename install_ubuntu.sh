@@ -49,6 +49,9 @@ cargo install eza fd-find bat ripgrep sd stylua
 # install zsh autosuggestions
 [ -d ~/.zsh/zsh-autosuggestions ] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
 
+# install zsh vi mode
+[ -d ~/.zsh/zsh-vi-mode ] || git clone https://github.com/jeffreytse/zsh-vi-mode ~/.zsh/zsh-vi-mode
+
 # install neovim
 sudo apt-get install ninja-build gettext cmake curl build-essential \
 && git clone --depth 1 --branch stable https://github.com/neovim/neovim \
