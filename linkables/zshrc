@@ -1,12 +1,13 @@
-if whence brew >/dev/null; then
-    source $(brew --prefix)/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
+# HOMEBREW_PREFIX comes from brew shellenv in zprofile; reading it saves running `brew --prefix`
+if [ -n "$HOMEBREW_PREFIX" ]; then
+    source $HOMEBREW_PREFIX/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 else
     source ~/.zsh/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 fi
 
 # source extensions
-if whence brew >/dev/null; then
-    zvm_after_init_commands+=('source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh')
+if [ -n "$HOMEBREW_PREFIX" ]; then
+    zvm_after_init_commands+=('source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh')
 else
     zvm_after_init_commands+=('source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh')
 fi
@@ -120,36 +121,31 @@ changes() {
 }
 
 # open neovim with the list of conflicts in the quickfix
-alias conflicts='nvim -q <(git diff --name-only --diff-filter=U | sed -e "s@^@$(git rev-parse --show-toplevel)/@" -e "s/$/:1:conflicts/" | xargs realpath --relative-to $(pwd)) +copen'
+conflicts() {
+    local root
+    root=$(git rev-parse --show-toplevel) || return 1
+    nvim -q <(git diff --name-only --diff-filter=U | sed -e "s@^@$root/@" -e "s/$/:1:conflicts/") +copen
+}
 
 # select a branch to checkout from a list of all local branches
 function gcb {
-    if [ "$1" ]; then
-        BRANCH=$(git branch | fzf --query=$1)
-    else
-        BRANCH=$(git branch | fzf)
-    fi
-
-    if [ "$BRANCH" ]; then
-        git checkout $(echo $BRANCH | sed 's/^ *//g')
-    fi
+    local branch
+    branch=$(git branch --format='%(refname:short)' | fzf --query="$1") || return
+    git checkout "$branch"
 }
 
 # select a list of branches to delete from a list of all local branches
 function gbd {
-    if [ "$1" ]; then
-        BRANCH=$(git branch | fzf --multi --query=$1)
-    else
-        BRANCH=$(git branch | fzf --multi)
-    fi
-
-    if [ "$BRANCH" ]; then
-        git branch -D $(echo $BRANCH | sed 's/^[*+] //g')
-    fi
+    local branches
+    branches=("${(@f)$(git branch --format='%(refname:short)' | fzf --multi --query="$1")}") || return
+    git branch -D "${branches[@]}"
 }
 
 alias gc-='git checkout -'
-alias gcm='git checkout master'
+# checkout the remote's default branch (main, master, develop, ...)
+gcm() {
+    git checkout "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+}
 alias gc@='git checkout @{u}'
 alias gs='git status'
 alias gap='git add --patch'
@@ -215,4 +211,4 @@ eval "$(starship init zsh)"
 tabs -4
 
 # source local .zshrc
-source ~/.zshrc.local
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local

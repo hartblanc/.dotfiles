@@ -16,12 +16,8 @@ export EDITOR=nvim
 # drop repeated PATH entries, so adding a directory that's already there does nothing
 typeset -U path PATH
 
-# user-installed binaries (claude, plz)
+# user-installed binaries (claude, plz, and pip3 --user and pipx installs)
 path=($HOME/.local/bin $path)
-
-# add the user base's binary directory to the path to allow binaries to be installed
-# using `pip3 --user` (reduces risk of breaking system-wide packages)
-path+=($(python3 -m site --user-base)/bin)
 
 # add cargo binaries to the path to access rusty CLIs (rg, fd, fzf etc.)
 path+=($HOME/.cargo/bin)
