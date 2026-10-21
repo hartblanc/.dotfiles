@@ -92,8 +92,6 @@ brew "yt-dlp/taps/yt-dlp"
 cask "anki"
 # Application uninstaller
 cask "appcleaner"
-# Reimagine your terminal
-cask "fig"
 # Web browser
 cask "firefox"
 # Vector graphics editor
