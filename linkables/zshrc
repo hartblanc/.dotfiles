@@ -67,11 +67,13 @@ compdef _plz_complete_zsh plz
 
 ## HISTORY
 
-setopt histignorealldups sharehistory
+# share history between sessions, keep only the newest copy of a command, and leave out
+# commands typed with a leading space (e.g. ones containing a secret)
+setopt histignorealldups sharehistory hist_ignore_space
 
-export HISTSIZE=1000
-export SAVEHIST=1000
-export HISTFILE=~/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+HISTFILE=~/.zsh_history
 
 # ALIASES
 alias t="tmux new-session -A -s main"
