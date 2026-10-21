@@ -30,6 +30,12 @@ end ---@diagnostic disable-next-line: undefined-field
 -- [[ Configure and install plugins ]]
 require('lazy').setup({
   {
+    'LunarVim/bigfile.nvim',
+    config = function(_, opts)
+      require('bigfile').setup(opts)
+    end,
+  },
+  {
     'johmsalas/text-case.nvim',
     dependencies = { 'nvim-telescope/telescope.nvim' },
     config = function()
