@@ -193,9 +193,10 @@ zvm_after_init_commands+=('bindkey "^n" history-beginning-search-forward')
 
 zvm_after_init_commands+=('bindkey "^ " autosuggest-accept')
 
-# Fix zsh-vi-mode bracketed paste issue (where final pasted character can be capitalized or changed to ~)
-zvm_after_init_commands+=('bindkey -M viins "^[[200~" .bracketed-paste')
-zvm_after_init_commands+=('bindkey -M vicmd "^[[200~" .bracketed-paste')
+# Fix zsh-vi-mode bracketed paste issue (where final pasted character can be capitalized or changed to ~).
+# Binds the bracketed-paste-magic widget from above, so pasted URLs are still quoted.
+zvm_after_init_commands+=('bindkey -M viins "^[[200~" bracketed-paste')
+zvm_after_init_commands+=('bindkey -M vicmd "^[[200~" bracketed-paste')
 
 # PROMPT - see ~/.config/starship.toml for config
 eval "$(starship init zsh)"
