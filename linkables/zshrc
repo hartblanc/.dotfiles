@@ -215,4 +215,4 @@ eval "$(starship init zsh)"
 tabs -4
 
 # source local .zshrc
-source ~/.zsh/.zshrc
+source ~/.zshrc.local
