@@ -1,3 +1,4 @@
 [core]
+    fsmonitor = true
+    untrackedcache = true
     pager = hunk pager
-
