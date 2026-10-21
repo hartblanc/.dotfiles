@@ -23,15 +23,13 @@ zstyle ':completion:*' format 'Completing %d'
 zstyle ':completion:*' verbose true
 
 # Completion options can be grouped by type (displayed in different lists).
-# If the empty string is given  all matches of different types will be displayed seperatley.
+# If the empty string is given all matches of different types will be displayed separately.
 zstyle ':completion:*' group-name ''
 
-# select from a menu if there are more than 2 options
-zstyle ':completion:*' menu select=2
 # only use menu if the options don't fit on the screen
 zstyle ':completion:*' menu select=long
 
-# set colors of automcompletion options based on the dircolors command if available
+# set colors of autocompletion options based on the dircolors command if available
 # otherwise use the BSD (macOS) alternative
 if whence dircolors >/dev/null; then
     eval $(dircolors -b ~/.dir_colors)
@@ -40,7 +38,6 @@ else
     export LSCOLORS="ExgxdxGxGxDxdxHxHxHeEx"
     export CLICOLOR=1
 fi
-
 
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ''
@@ -57,7 +54,6 @@ _plz_complete_zsh() {
         compadd -S '' $completion
     done
 }
-
 
 # activate zsh auto-completions
 autoload -Uz compinit
@@ -173,7 +169,6 @@ export FZF_COMPLETION_TRIGGER='~~'
 
 zvm_after_init_commands+=('[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh')
 
-
 export BAT_THEME="Nord"
 
 # URL ESCAPING
@@ -188,9 +183,6 @@ export NNN_FCOLORS="$BLK$CHR$DIR$EXE$REG$HARDLINK$SYMLINK$MISSING$ORPHAN$FIFO$SO
 
 # KEY BINDINGS
 
-# Set terminal keybindings to emacs (zsh may assume you want vim bindings if you set your editor to vim)
-# This must be done before other keybindings otherwise other bindings will be overwritten in tmux
-
 # Enable Ctrl-g to edit command line
 autoload -U edit-command-line
 zle -N edit-command-line
@@ -204,7 +196,6 @@ zvm_after_init_commands+=('bindkey "^ " autosuggest-accept')
 # Fix zsh-vi-mode bracketed paste issue (where final pasted character can be capitalized or changed to ~)
 zvm_after_init_commands+=('bindkey -M viins "^[[200~" .bracketed-paste')
 zvm_after_init_commands+=('bindkey -M vicmd "^[[200~" .bracketed-paste')
-
 
 # PROMPT - see ~/.config/starship.toml for config
 eval "$(starship init zsh)"
