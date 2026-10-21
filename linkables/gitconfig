@@ -1,0 +1,23 @@
+[user]
+    name = callum
+    email = notify+github@callumhart.me
+
+[include]
+    path = ~/.dotfiles/hunk.gitconfig
+    # Machine-specific settings (not tracked), such as another identity for some repositories.
+    # Git ignores this if the file does not exist.
+    path = ~/.gitconfig.local
+
+[pull]
+    rebase = true
+[core]
+    excludesfile = ~/.gitignore
+[merge]
+    tool = nvimdiff
+[pager]
+    log = less
+[rebase]
+    updateRefs = true
+    autoStash = true
+[rerere]
+    enabled = true
