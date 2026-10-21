@@ -219,7 +219,7 @@ require('lazy').setup({
 
   {
     'nvim-treesitter/nvim-treesitter', -- Highlight, edit, and navigate code
-    tag = 'v0.25.10',
+    branch = 'main',
     build = ':TSUpdate',
     opts = {
       auto_install = true,
