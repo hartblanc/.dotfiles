@@ -154,16 +154,19 @@ export NNN_FCOLORS="$BLK$CHR$DIR$EXE$REG$HARDLINK$SYMLINK$MISSING$ORPHAN$FIFO$SO
 # Set terminal keybindings to emacs (zsh may assume you want vim bindings if you set your editor to vim)
 # This must be done before other keybindings otherwise other bindings will be overwritten in tmux
 
-# Enable Ctrl-x-e to edit command line
+# Enable Ctrl-g to edit command line
 autoload -U edit-command-line
 zle -N edit-command-line
-zvm_after_init_commands+=('bindkey "^xe" edit-command-line')
-zvm_after_init_commands+=('bindkey "^x^e" edit-command-line')
+zvm_after_init_commands+=('bindkey "^g" edit-command-line')
 
 zvm_after_init_commands+=('bindkey "^p" history-beginning-search-backward')
 zvm_after_init_commands+=('bindkey "^n" history-beginning-search-forward')
 
 zvm_after_init_commands+=('bindkey "^ " autosuggest-accept')
+
+# Fix zsh-vi-mode bracketed paste issue (where final pasted character can be capitalized or changed to ~)
+zvm_after_init_commands+=('bindkey -M viins "^[[200~" .bracketed-paste')
+zvm_after_init_commands+=('bindkey -M vicmd "^[[200~" .bracketed-paste')
 
 
 # PROMPT - see ~/.config/starship.toml for config
