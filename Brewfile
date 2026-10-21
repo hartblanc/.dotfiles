@@ -40,8 +40,8 @@ brew "gdal"
 brew "gh"
 # Distributed revision control system
 brew "git"
-# Syntax-highlighting pager for git and diff output
-brew "git-delta"
+# Interactive terminal diff viewer
+brew "hunk"
 # Validating, recursive, caching DNS resolver
 brew "unbound"
 # GNU Transport Layer Security (TLS) Library
