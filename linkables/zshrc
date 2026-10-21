@@ -86,6 +86,39 @@ alias ll="eza --header --classify=auto --all --long"
 alias vi=nvim
 alias fo="nvim '+Telescope oldfiles'"
 
+# open neovim with every hunk changed against the upstream branch in the quickfix (one entry per hunk)
+changes() {
+    local root diff entries
+    root=$(git rev-parse --show-toplevel) || return 1
+    diff=$(git diff -U0 --no-color --src-prefix=a/ --dst-prefix=b/ @{u}) || return 1
+    entries=$(
+        print -r -- "$diff" | awk -v root="$root" '
+            /^diff --git/ { header = 1; file = ""; next }
+            header && /^--- a\// { old = substr($0, 7); next }
+            header && /^\+\+\+ / {
+                file = ($2 == "/dev/null") ? "" : substr($0, 7)
+                if (file == "") print root "/" old ":1:deleted file"
+                next
+            }
+            /^@@ / {
+                header = 0
+                split($3, new, ",")
+                line = substr(new[1], 2) + 0
+                if (line < 1) line = 1
+                pending = (file != "")
+                next
+            }
+            pending && /^[-+]/ { print root "/" file ":" line ":" $0; pending = 0 }
+        '
+        git ls-files --others --exclude-standard | sed -e "s@^@$root/@" -e "s/$/:1:untracked file/"
+    )
+    if [ -z "$entries" ]; then
+        echo "no changes against upstream"
+        return 0
+    fi
+    nvim -q <(print -r -- "$entries") +copen
+}
+
 # open neovim with the list of conflicts in the quickfix
 alias conflicts='nvim -q <(git diff --name-only --diff-filter=U | sed -e "s@^@$(git rev-parse --show-toplevel)/@" -e "s/$/:1:conflicts/" | xargs realpath --relative-to $(pwd)) +copen'
 
@@ -120,7 +153,13 @@ alias gcm='git checkout master'
 alias gc@='git checkout @{u}'
 alias gs='git status'
 alias gap='git add --patch'
-alias gd='git diff @{u}'
+# diff against the upstream branch, including untracked files
+gd() {
+    (
+        git --no-pager diff @{u} -- "$@"
+        git ls-files --others --exclude-standard -- "$@" | xargs -rI {} git --no-pager diff --no-index /dev/null {}
+    ) | hunk pager
+}
 
 function qf {
     nvim -q <(rg --column $@) +":copen"
