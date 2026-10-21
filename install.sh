@@ -2,7 +2,7 @@
 xcode-select --install
 
 # Clone repo into new hidden directory
-git clone https://github.com/HartBlanc/dotfiles.git ~/.dotfiles
+git clone https://github.com/hartblanc/.dotfiles.git ~/.dotfiles
 
 # Install homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
