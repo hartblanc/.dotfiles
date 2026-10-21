@@ -10,6 +10,9 @@ fi
 
 export NERD_FONT="NerdFontMono"
 
+# set default editor to neovim (used for e.g. commit messages)
+export EDITOR=nvim
+
 # drop repeated PATH entries, so adding a directory that's already there does nothing
 typeset -U path PATH
 

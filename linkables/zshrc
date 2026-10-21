@@ -11,11 +11,6 @@ else
     zvm_after_init_commands+=('source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh')
 fi
 
-# set default editor to neovim (used for e.g. commit messages)
-export EDITOR=nvim
-# set the shell to zsh
-export SHELL=$(which zsh)
-
 ## AUTOCOMPLETION
 
 # the description for options that are not described by the completion functions
